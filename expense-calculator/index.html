@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .expense-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        input, button {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .expenses-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        .expenses-table th,
+        .expenses-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .expenses-table th {
+            background-color: #f8f9fa;
+        }
+
+        .results {
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+
+        .results h2 {
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .results p {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Expense Calculator</h1>
+        
+        <div class="expense-form">
+            <input type="text" id="category" placeholder="Category" required>
+            <input type="number" id="amount" placeholder="Amount ($)" required>
+            <button onclick="addExpense()">Add Expense</button>
+        </div>
+
+        <table class="expenses-table">
+            <thead>
+                <tr>
+                    <th>Category</th>
+                    <th>Amount ($)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="expensesList">
+            </tbody>
+        </table>
+
+        <button onclick="calculateExpenses()" style="width: 100%; margin-bottom: 2rem;">Calculate</button>
+
+        <div class="results">
+            <h2>Results</h2>
+            <p>Total Expenses: <span id="totalExpenses">$0</span></p>
+            <p>Average Daily Expense: <span id="averageExpense">$0</span></p>
+            <p>Top 3 Expenses:</p>
+            <ul id="topExpenses"></ul>
+        </div>
+    </div>
+
+    <script>
+        let expenses = [];
+
+        function addExpense() {
+            const category = document.getElementById('category').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if (!category || !amount) {
+                alert('Please fill in both category and amount');
+                return;
+            }
+
+            // Round to 2 decimal places
+            const roundedAmount = Math.round(amount * 100) / 100;
+            expenses.push({ category, amount: roundedAmount });
+            updateExpensesTable();
+            clearForm();
+        }
+
+        function clearForm() {
+            document.getElementById('category').value = '';
+            document.getElementById('amount').value = '';
+        }
+
+        function deleteExpense(index) {
+            expenses.splice(index, 1);
+            updateExpensesTable();
+        }
+
+        function updateExpensesTable() {
+            const tbody = document.getElementById('expensesList');
+            tbody.innerHTML = '';
+
+            expenses.forEach((expense, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${expense.category}</td>
+                    <td>$${expense.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                    <td>
+                        <button class="delete-btn" onclick="deleteExpense(${index})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function calculateExpenses() {
+            // Calculate total expenses
+            const total = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            
+            // Calculate average daily expense
+            const averageDaily = total / 30;
+
+            // Get top 3 expenses
+            const topExpenses = [...expenses]
+                .sort((a, b) => b.amount - a.amount)
+                .slice(0, 3);
+
+            // Update the results in the UI
+            document.getElementById('totalExpenses').textContent = `$${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('averageExpense').textContent = `$${averageDaily.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+            const topExpensesList = document.getElementById('topExpenses');
+            topExpensesList.innerHTML = topExpenses
+                .map(expense => `<li>${expense.category}: $${expense.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</li>`)
+                .join('');
+        }
+
+        // Initialize empty expenses array
+        expenses = [];
+        updateExpensesTable();
+        calculateExpenses();
+    </script>
+</body>
+</html> 
